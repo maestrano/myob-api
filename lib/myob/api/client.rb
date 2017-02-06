@@ -23,9 +23,7 @@ module Myob
           connection_opts: {request: {timeout: options[:timeout] || 300}}
         })
 
-        if options[:company_file]
-          @current_company_file = select_company_file(options[:company_file])
-        end
+        @current_company_file = select_company_file(options[:company_file]) if options[:company_file]
       end
 
       def get_access_code_url(params = {})
@@ -51,8 +49,12 @@ module Myob
       end
 
       def select_company_file(company_file)
-        company_file_id = self.company_file.first(query: {'Name' => company_file[:name]})['Id']
-        @current_company_file = {
+        return {} if company_file.nil?
+        myob_company_file = self.company_file.first(query: {'Name' => company_file[:name]})
+        return {} if myob_company_file.nil?
+        company_file_id = myob_company_file['Id']
+
+        {
           :id    => company_file_id,
           :token => company_file[:token] || Base64.encode64("#{company_file[:username]}:#{company_file[:password]}"),
         }
